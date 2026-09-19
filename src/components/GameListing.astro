@@ -1,0 +1,97 @@
+---
+import EmptyState from './EmptyState.astro';
+import GameCard from './GameCard.astro';
+import type { PaginatedGames } from '../lib/games';
+
+interface Props {
+    pagination: PaginatedGames;
+}
+
+const { pagination } = Astro.props;
+
+function pageHref(page: number): string {
+    return page === 1 ? '/' : `/page/${page}/`;
+}
+---
+
+<div>
+    <h2 class="text-2xl font-medium mb-6 text-slate-100">Featured Games</h2>
+
+    {pagination.games.length === 0 ? (
+        <EmptyState text="No games available at the moment." />
+    ) : (
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="games-grid">
+            {pagination.games.map((game) => <GameCard game={game} />)}
+        </div>
+    )}
+
+    {pagination.totalPages > 1 && (
+        <nav
+            class="mt-8 flex flex-wrap items-center justify-center gap-2"
+            aria-label="Game list pagination"
+            data-testid="pagination"
+        >
+            {pagination.hasPreviousPage ? (
+                <a
+                    href={pageHref(pagination.page - 1)}
+                    class="inline-flex items-center rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-200 transition-colors hover:bg-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    aria-label="Go to previous page"
+                    data-testid="pagination-previous"
+                >
+                    Previous
+                </a>
+            ) : (
+                <span
+                    class="inline-flex cursor-not-allowed items-center rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-500"
+                    aria-disabled="true"
+                    data-testid="pagination-previous-disabled"
+                >
+                    Previous
+                </span>
+            )}
+
+            <div class="flex items-center gap-1" aria-label="Pages">
+                {Array.from({ length: pagination.totalPages }, (_, index) => index + 1).map((page) => (
+                    page === pagination.page ? (
+                        <span
+                            class="inline-flex h-10 min-w-10 items-center justify-center rounded-lg bg-blue-600 px-3 text-sm font-medium text-white"
+                            aria-current="page"
+                            aria-label={`Page ${page}, current page`}
+                            data-testid={`pagination-page-${page}`}
+                        >
+                            {page}
+                        </span>
+                    ) : (
+                        <a
+                            href={pageHref(page)}
+                            class="inline-flex h-10 min-w-10 items-center justify-center rounded-lg border border-slate-600 px-3 text-sm text-slate-200 transition-colors hover:bg-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            aria-label={`Go to page ${page}`}
+                            data-testid={`pagination-page-${page}`}
+                        >
+                            {page}
+                        </a>
+                    )
+                ))}
+            </div>
+
+            {pagination.hasNextPage ? (
+                <a
+                    href={pageHref(pagination.page + 1)}
+                    class="inline-flex items-center rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-200 transition-colors hover:bg-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    aria-label="Go to next page"
+                    data-testid="pagination-next"
+                >
+                    Next
+                </a>
+            ) : (
+                <span
+                    class="inline-flex cursor-not-allowed items-center rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-500"
+                    aria-disabled="true"
+                    data-testid="pagination-next-disabled"
+                >
+                    Next
+                </span>
+            )}
+        </nav>
+    )}
+</div>

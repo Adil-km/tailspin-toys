@@ -24,6 +24,26 @@ test.describe('Game Listing and Navigation', () => {
     });
   });
 
+  test('should navigate between paginated game-list pages', async ({ page }) => {
+    await test.step('Verify the first page has pagination controls', async () => {
+      await page.goto('/');
+      await expect(page.getByTestId('games-grid')).toBeVisible();
+      await expect(page.getByTestId('game-card')).toHaveCount(6);
+      await expect(page.getByTestId('pagination')).toBeVisible();
+      await expect(page.getByTestId('pagination-page-1')).toHaveAttribute('aria-current', 'page');
+      await expect(page.getByTestId('pagination-next')).toBeVisible();
+      await expect(page.getByTestId('pagination-previous-disabled')).toHaveAttribute('aria-disabled', 'true');
+    });
+
+    await test.step('Open the second page', async () => {
+      await page.getByTestId('pagination-next').click();
+      await expect(page).toHaveURL('/page/2/');
+      await expect(page.getByTestId('game-card')).toHaveCount(6);
+      await expect(page.getByTestId('pagination-page-2')).toHaveAttribute('aria-current', 'page');
+      await expect(page.getByTestId('pagination-previous')).toBeVisible();
+    });
+  });
+
   test('should navigate to correct game details page when clicking on a game', async ({ page }) => {
     let gameId: string | null;
     let gameTitle: string | null;

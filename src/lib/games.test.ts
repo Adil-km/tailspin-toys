@@ -6,6 +6,7 @@ import {
     getAllGames,
     getAllGameIds,
     getGameById,
+    getPaginatedGames,
 } from './games';
 
 async function seedGames(db: Database, count: number): Promise<void> {
@@ -50,6 +51,48 @@ describe('games data-access helpers', () => {
         const ids = await getAllGameIds(db);
         const all = await getAllGames(db);
         expect(ids).toEqual(all.map((g) => g.id));
+    });
+
+    it('returns a page of games with stable ordering and metadata', async () => {
+        await seedGames(db, 13);
+
+        const firstPage = await getPaginatedGames(db, 1, 6);
+        const lastPage = await getPaginatedGames(db, 3, 6);
+
+        expect(firstPage.games.map((game) => game.title)).toEqual([
+            'Game 01',
+            'Game 02',
+            'Game 03',
+            'Game 04',
+            'Game 05',
+            'Game 06',
+        ]);
+        expect(firstPage.totalGames).toBe(13);
+        expect(firstPage.totalPages).toBe(3);
+        expect(firstPage.hasPreviousPage).toBe(false);
+        expect(firstPage.hasNextPage).toBe(true);
+        expect(lastPage.games.map((game) => game.title)).toEqual(['Game 13']);
+        expect(lastPage.hasPreviousPage).toBe(true);
+        expect(lastPage.hasNextPage).toBe(false);
+    });
+
+    it('returns an empty page when the requested page is beyond the collection', async () => {
+        await seedGames(db, 2);
+
+        const pagination = await getPaginatedGames(db, 3, 6);
+
+        expect(pagination.games).toEqual([]);
+        expect(pagination.totalPages).toBe(1);
+        expect(pagination.hasPreviousPage).toBe(true);
+        expect(pagination.hasNextPage).toBe(false);
+    });
+
+    it.each([
+        [0, 6],
+        [1, 0],
+        [1.5, 6],
+    ])('rejects invalid pagination input (%s, %s)', async (page: number, pageSize: number) => {
+        await expect(getPaginatedGames(db, page, pageSize)).rejects.toThrow(RangeError);
     });
 
     it('fetches a single game by id', async () => {
