@@ -42,6 +42,11 @@ npm run build      # prebuild migrates + seeds, then builds the static site
 npm run preview
 ```
 
+The game list is statically paginated with six games per page. The first page is
+available at `/`, and subsequent pages are generated at `/page/2/`, `/page/3/`,
+and so on. Use the accessible pagination controls below the game grid to browse
+the catalog.
+
 ## Database
 
 The SQLite database is built from `db/games.csv` — there is no live data to migrate.
